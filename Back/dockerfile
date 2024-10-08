@@ -1,0 +1,21 @@
+FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
+WORKDIR /app
+
+COPY ./Back/API/API.csproj ./API/
+COPY ./Back/BL/BL.csproj ./BL/
+COPY ./Back/ENTITIES/ENTITIES.csproj ./ENTITIES/
+
+RUN dotnet restore ./API/API.csproj
+
+COPY . .
+RUN dotnet publish ./Back/API/API.csproj -c Release -o /publish
+
+FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS runtime
+WORKDIR /app
+
+ENV ASPNETCORE_ENVIRONMENT=Production
+
+COPY --from=build /publish .
+EXPOSE 80
+
+ENTRYPOINT ["dotnet", "API.dll"]
